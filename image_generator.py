@@ -6,7 +6,12 @@ from PIL import Image, ImageDraw, ImageFont
 
 class InstaImgCreator:
     def __init__(
-        self, font_name: str, font_size: int, bg_path: str, text: str = ""
+        self,
+        font_name: str,
+        font_size: int,
+        bg_path: str,
+        text: str = "",
+        signature: str = "",
     ) -> None:
         self.font = ImageFont.truetype(font_name, font_size)
 
@@ -20,8 +25,9 @@ class InstaImgCreator:
         self.inner_bottom = 1168
         self.inner_height = self.inner_bottom - self.inner_top
 
-        self._original_text = text
-        self.text = self._original_text
+        self._signature = signature
+
+        self.text = text
 
     @property
     def text(self) -> str:
@@ -30,6 +36,14 @@ class InstaImgCreator:
     @text.setter
     def text(self, text: str) -> None:
         self._text = self.list_to_str(self.fit_text(text))
+
+    @property
+    def signature(self) -> str:
+        return self._signature
+
+    @signature.setter
+    def signature(self, text: str) -> None:
+        self._signature = text if text.startswith("-") else f"-{text}"
 
     def get_str_width(self, text: str) -> int:
         """Returns width of text"""
@@ -80,7 +94,7 @@ class InstaImgCreator:
         return centered
 
     def imprint_text(self) -> Image.Image:
-        """Imprints text to image centered vertically inside inner box
+        """Imprints text to image centered vertically inside the inner box
         Returns image
         """
         draw = ImageDraw.Draw(self.bg)
@@ -90,6 +104,18 @@ class InstaImgCreator:
             font=self.font,
             fill="black",
             spacing=-10,
+        )
+        return self.bg
+
+    def imprint_signature(self) -> Image.Image:
+        """Imprints signature to left-botoom corner of the inner box
+        Returns image
+        """
+        left = self.inner_right - self.get_str_width(self.signature)
+        top = self.inner_bottom - self.get_str_height(self.signature)
+        draw = ImageDraw.Draw(self.bg)
+        draw.multiline_text(
+            (left, top), self.signature, font=self.font, fill="black", spacing=-10,
         )
         return self.bg
 
@@ -111,5 +137,7 @@ if __name__ == "__main__":
     iic = InstaImgCreator(FONT_NAME, FONT_SIZE, GREEN_BG_PATH)
     for quote, author in read_from_csv():
         iic.text = quote
-        iic.imprint_text().show()
+        iic.signature = author
+        iic.imprint_text()
+        iic.imprint_signature().show()
         break
