@@ -1,5 +1,4 @@
 from csv import DictReader
-from typing import Generator, List
 
 from PIL import Image, ImageDraw, ImageFont
 
@@ -25,8 +24,7 @@ class InstaImgCreator:
         self.inner_bottom = 1168
         self.inner_height = self.inner_bottom - self.inner_top
 
-        self._signature = signature
-
+        self.signature = signature
         self.text = text
 
     @property
@@ -35,7 +33,7 @@ class InstaImgCreator:
 
     @text.setter
     def text(self, text: str) -> None:
-        self._text = self.list_to_str(self.fit_text(text))
+        self._text = self.text_wrap(text)  # self.list_to_str(self.fit_text(text))
 
     @property
     def signature(self) -> str:
@@ -53,39 +51,24 @@ class InstaImgCreator:
         """Returns height of text"""
         return self.font.getsize_multiline(text)[1]
 
-    def fit_text(self, text: str) -> list:
-        """Splits the text in lines, so it would fit in the inner box of the image
+    def fit_inner(self, text: str) -> bool:
+        """Checks if text fits into inner box"""
+        return self.get_str_width(text) <= self.inner_width
 
-        Returns list of strings. It gives the ability to use own line spacing.
-        """
+    def text_wrap(self, text: str) -> str:
+        """Wraps text, so it would fit in the inner box"""
 
-        words = text.split(" ")
+        chars = list(text)
+        left_cursor = 0
+        prevous_cursor = 0
+        for right_cursor in range(len(text)):
+            if text[right_cursor] == " ":
+                if not self.fit_inner(text[left_cursor : right_cursor + 1]):
+                    chars[prevous_cursor] = "\n"
+                    left_cursor = right_cursor
+                prevous_cursor = right_cursor
 
-        # TODO DRY
-        lines = list()
-        line = list()
-        for word in words:
-            temp_line = line[:]
-            temp_line.append(word)
-            temp_line_width = self.get_str_width(" ".join(temp_line))
-            if temp_line_width > self.inner_width:
-                if line:
-                    lines.append(" ".join(line))
-                    line.clear()
-                    line.append(word)
-                else:
-                    lines.append("".join(temp_line))
-                    line.clear()
-            else:
-                line.append(word)
-        if line:
-            lines.append(" ".join(line))
-
-        return lines
-
-    def list_to_str(self, lines_of_text: List, sep: str = "\n") -> str:
-        """Just combines list of strings to single string"""
-        return sep.join(lines_of_text)
+        return "".join(chars)
 
     def inner_centered_top(self) -> int:
         """finds vertical coordinate, for text to be vertically centered inside the image"""
@@ -93,31 +76,38 @@ class InstaImgCreator:
         centered = (self.inner_height - text_height) / 2
         return centered
 
-    def imprint_text(self) -> Image.Image:
-        """Imprints text to image centered vertically inside the inner box
-        Returns image
-        """
+    def _imprint_text(self, text: str, pos: tuple):
+        """Imprints text on image"""
         draw = ImageDraw.Draw(self.bg)
         draw.multiline_text(
-            (self.inner_left, self.inner_centered_top()),
-            self.text,
+            pos,
+            text,
             font=self.font,
             fill="black",
-            spacing=-10,
+            spacing=0,
+            stroke_width=1,
+            stroke_fill="black",
         )
-        return self.bg
+        return self
 
-    def imprint_signature(self) -> Image.Image:
-        """Imprints signature to left-botoom corner of the inner box
-        Returns image
-        """
-        left = self.inner_right - self.get_str_width(self.signature)
-        top = self.inner_bottom - self.get_str_height(self.signature)
-        draw = ImageDraw.Draw(self.bg)
-        draw.multiline_text(
-            (left, top), self.signature, font=self.font, fill="black", spacing=-10,
+    def imprint_text(self):
+        """imprints text in the middle of the inner box"""
+        return self._imprint_text(
+            text=self.text, pos=(self.inner_left, self.inner_centered_top()),
         )
-        return self.bg
+
+    def imprint_signature(self):
+        """imprints signature in the right-bottom corner of the inner box"""
+        return self._imprint_text(
+            text=self.signature,
+            pos=(
+                self.inner_right - self.get_str_width(self.signature),
+                self.inner_bottom - self.get_str_height(self.signature),
+            ),
+        )
+
+    def show(self, *args, **kwargs):
+        self.bg.show(*args, **kwargs)
 
 
 def read_from_csv():
@@ -138,6 +128,5 @@ if __name__ == "__main__":
     for quote, author in read_from_csv():
         iic.text = quote
         iic.signature = author
-        iic.imprint_text()
-        iic.imprint_signature().show()
+        iic.imprint_text().imprint_signature().show()
         break
