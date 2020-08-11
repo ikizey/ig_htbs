@@ -16,6 +16,7 @@ inner_box = bg_green.crop(INNER_BOX_SIZE)
 
 
 def fit_text(text: str, image: Image, font: FreeTypeFont) -> str:
+    """splits text into lines, so that lines fit into image width"""
     words = text.split(' ')
     lines = [[words.pop(0)]]
     for word in words:
@@ -29,14 +30,16 @@ def fit_text(text: str, image: Image, font: FreeTypeFont) -> str:
 
 
 def centered_height(image: Image, text: str, font: FreeTypeFont) -> int:
+    """finds vertical position, to text to be vertically centered"""
     _, image_height = image.size
     _, text_height = font.getsize_multiline(text)
     centered_height = (image_height / 2 - text_height / 2) / 2
     return centered_height
 
 
-# font.set_variation_by_name("bold")
+# FONT.set_variation_by_name("bold")
 
+# testing is going on
 with open("static/quotes.tsv", 'r') as quotes:
     lines = csv.DictReader(quotes, delimiter='\t', quotechar='"')
     for line in lines:
