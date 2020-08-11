@@ -1,58 +1,103 @@
-from __future__ import annotations
-import csv
-import textwrap
-from PIL import Image, ImageFont, ImageDraw
+from csv import DictReader
+from typing import Generator, List
+
+from PIL import Image, ImageDraw, ImageFont
 
 
-FONT_NAME = "DancingScript-SemiBold.ttf"
-FONT_SIZE = 140
-FONT = ImageFont.truetype(FONT_NAME, FONT_SIZE)
+class InstaImgCreator:
+    def __init__(
+        self, font_name: str, font_size: int, bg_path: str, text: str = ""
+    ) -> None:
+        self.font = ImageFont.truetype(font_name, font_size)
 
-bg_green = Image.open("static/bg_green.jpeg")
-# bg_blue = Image.open("static/blue.jpeg")
+        self.bg = Image.open(bg_path)
 
-INNER_BOX_SIZE = (110, 130, 971, 1168)
-inner_box = bg_green.crop(INNER_BOX_SIZE)
+        self._inner_box_coords = (110, 130, 971, 1168)
+        self.inner_left = self._inner_box_coords[0]
+        self.inner_width = self._inner_box_coords[2] - self._inner_box_coords[0]
+        self.inner_top = self._inner_box_coords[1]
+        self.inner_height = self._inner_box_coords[3] - self._inner_box_coords[1]
+
+        self._original_text = text
+        self.text = self._original_text
+        # self.text = self._original_text
+
+    @property
+    def text(self) -> str:
+        return self._text
+
+    @text.setter
+    def text(self, text: str) -> None:
+        self._text = self.list_to_str(self.fit_text(text))
+
+    def get_str_width(self, text: str) -> int:
+        return self.font.getsize(text)[0]
+
+    def get_str_height(self, text: str) -> int:
+        return self.font.getsize_multiline(text)[1]
+
+    def fit_text(self, text: str) -> list:
+        words = text.split(" ")
+
+        # TODO DRY
+        lines = list()
+        line = list()
+        for word in words:
+            temp_line = line[:]
+            temp_line.append(word)
+            temp_line_width = self.get_str_width(" ".join(temp_line))
+            if temp_line_width > self.inner_width:
+                if line:
+                    lines.append(" ".join(line))
+                    line.clear()
+                    line.append(word)
+                else:
+                    lines.append("".join(temp_line))
+                    line.clear()
+            else:
+                line.append(word)
+        if line:
+            lines.append(" ".join(line))
+
+        return lines
+
+    def list_to_str(self, lines_of_text: List) -> str:
+        return "\n".join(lines_of_text)
+
+    def centered_top(self) -> int:
+        """finds vertical position, to text to be vertically centered"""
+        text_height = self.get_str_height(self.text)
+        centered = (self.inner_height / 2 - text_height / 2) / 2
+        return centered
+
+    def imprint_text(self) -> None:
+        draw = ImageDraw.Draw(self.bg)
+        draw.multiline_text(
+            (self.inner_left, self.centered_top()),
+            self.text,
+            font=self.font,
+            fill="black",
+            spacing=-10,
+        )
 
 
-def fit_text(text: str, image: Image, font: FreeTypeFont) -> str:
-    """splits text into lines, so that lines fit into image width"""
-    words = text.split(' ')
-    lines = [[words.pop(0)]]
-    for word in words:
-        if font.getsize(' '.join(lines[-1] + [word]))[0] <= image.width:
-            lines[-1].append(word)
-        else:
-            lines += [[word]]
-    lines_of_str = [' '.join(line) for line in lines]
-    str_of_str = '\n'.join(lines_of_str)
-    return str_of_str
+def generate_text_from_csv() -> Generator[str]:
+    with open("static/quotes.tsv", 'r') as quotes:
+        lines = DictReader(quotes, delimiter='\t', quotechar='"')
+        for line in lines:
+            if line['post_date'] != '':
+                yield line['quote']
 
 
-def centered_height(image: Image, text: str, font: FreeTypeFont) -> int:
-    """finds vertical position, to text to be vertically centered"""
-    _, image_height = image.size
-    _, text_height = font.getsize_multiline(text)
-    centered_height = (image_height / 2 - text_height / 2) / 2
-    return centered_height
+if __name__ == "__main__":
 
+    FONT_NAME = "DancingScript-SemiBold.ttf"
+    FONT_SIZE = 140
+    GREEN_BG_PATH = "static/bg_green.jpeg"
 
-# FONT.set_variation_by_name("bold")
-
-# testing is going on
-with open("static/quotes.tsv", 'r') as quotes:
-    lines = csv.DictReader(quotes, delimiter='\t', quotechar='"')
-    for line in lines:
-        if line['post_date'] != '':
-            text = fit_text(line['quote'], inner_box, FONT)
-            draw = ImageDraw.Draw(inner_box)
-            draw.multiline_text(
-                (0, centered_height(inner_box, text, FONT)),
-                text,
-                fill="black",
-                font=FONT,
-                spacing=-10,
-            )
-            inner_box.show()
-            bg_green.show()
-            break
+    iic = InstaImgCreator(FONT_NAME, FONT_SIZE, GREEN_BG_PATH)
+    for word in generate_text_from_csv():
+        iic.text = word
+        iic.imprint_text()
+        iic.bg.show()
+        break
