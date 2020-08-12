@@ -2,7 +2,7 @@ from csv import DictReader
 
 from PIL import Image
 
-from instaimgcreator import MyInstaImgCreator
+from utils import MyInstaImgCreator
 
 
 def read_from_csv():

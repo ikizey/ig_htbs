@@ -12,8 +12,8 @@ class FontedText:
         font_size: int = 14,
         stroke_size: int = 0,
         spacing: int = 0,
-        shadow_color=None,
-        shadow_offset=None,
+        shadow_color: tuple = None,
+        shadow_offset: tuple = None,
     ) -> None:
         self._text: str = text
         self.color: tuple = color
@@ -24,10 +24,12 @@ class FontedText:
 
     @property
     def text(self) -> str:
+        """Returns text"""
         return self._text
 
     @text.setter
     def text(self, text: str) -> None:
+        """Sets text"""
         self._text = text
 
     @property
@@ -43,28 +45,40 @@ class FontedText:
     @property
     def size(self) -> tuple:
         """Returns size of text"""
-        return self.width, self.height
+        return self.font.getsize_multiline(self.text)
 
     @property
     def shadow(self) -> tuple:
+        """Returns `tuple: (color, offset)`
+        where `color: tuple(R, G, B, A)`;
+        `offset: tuple(left, top)`
+        
+        This can be used to achieve interesting effects, 
+        if use color different from text color
+        """
         return self._shadow
 
     @shadow.setter
     def shadow(self, *args) -> None:
+        """ Sets shadow properties:
+        `args: tuple(shadow_color, shadow_offset)`
+        where `color: tuple(R, G, B, A)`;
+        `offset: tuple(left, top)`
+        """
         self._shadow = args[0][0], args[0][1]
 
     def shadow_color(self) -> tuple:
         """Returns color of the shadow"""
-        return self._shadow[0]
+        return self._shadow[0][0]
 
     def shadow_offset(self) -> tuple:
         """Returns offset of the shadow"""
-        return self._shadow[1]
+        return self._shadow[0][1]
 
     @property
     def has_shadow(self):
         """Checks if color and offset is present"""
-        return not (self._shadow[0] is None or self._shadow[1] is None)
+        return not (self._shadow[0][0] is None or self._shadow[0][1] is None)
 
     def text_wrap(self, width: int) -> None:
         """Wraps text, so it would fit given width"""
@@ -92,7 +106,7 @@ class FontedText:
 class FontedTextPrinter:
     """Prints FontedText to Image
 
-    * :py:func:`print -> PIL.Image.Image`"""
+    `print -> PIL.Image.Image`"""
 
     def __init__(
         self, text: FontedText = None, position: tuple = None, image: Image.Image = None
@@ -123,13 +137,17 @@ class FontedTextPrinter:
 
     @property
     def image(self) -> Image.Image:
+        """Returns `image -> PIL.Image.Image`"""
         return self._image
 
     @image.setter
     def image(self, image: Image.Image) -> None:
+        """Sets image
+        `image: PIL.Image.Image`"""
+
         self._image = image
 
-    def _shadow_pos(self):
+    def _shadow_pos(self) -> tuple:
         """Returns position of the shadow"""
         if self.text.has_shadow:
             left = self.position[0] + self.text.shadow_offset()[0]
@@ -156,9 +174,10 @@ class FontedTextPrinter:
         return layer
 
     def print(self, commit=True) -> Image.Image:
-        """Returns image with text on it
-        if commit == True, you will get initial image woth text on it
-        else, you will get image with text on tansparent background
+        """Returns image with text on it.
+
+        If `commit == True`, you will get initial image woth text on it
+        else, you will get an image with text on tansparent background
         """
         image = self._to_image(self.position, self.text.color)
 
