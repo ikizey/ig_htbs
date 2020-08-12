@@ -50,8 +50,8 @@ class FontedText:
         return self._shadow
 
     @shadow.setter
-    def shadow(self, offset, color) -> None:
-        self._shadow = (color, offset)
+    def shadow(self, *args) -> None:
+        self._shadow = args[0][0], args[0][1]
 
     def shadow_color(self) -> tuple:
         """Returns color of the shadow"""
@@ -66,7 +66,7 @@ class FontedText:
         """Checks if color and offset is present"""
         return not (self._shadow[0] is None or self._shadow[1] is None)
 
-    def text_wrap(self, width: int) -> str:
+    def text_wrap(self, width: int) -> None:
         """Wraps text, so it would fit given width"""
 
         chars = list(self.text)
@@ -94,7 +94,9 @@ class FontedTextPrinter:
 
     * :py:func:`print -> PIL.Image.Image`"""
 
-    def __init__(self, text: FontedText, position: tuple, image: Image.Image) -> None:
+    def __init__(
+        self, text: FontedText = None, position: tuple = None, image: Image.Image = None
+    ) -> None:
         """`text: FontedText`;
         `position: tuple(left, top, right, bottom)`;
         `image: PIL.Image.Image`
@@ -107,19 +109,31 @@ class FontedTextPrinter:
     def text(self) -> FontedText:
         return self._text
 
+    @text.setter
+    def text(self, text: FontedText) -> None:
+        self._text = text
+
     @property
-    def position(self) -> FontedText:
+    def position(self) -> tuple:
         return self._position
+
+    @position.setter
+    def position(self, position: tuple) -> None:
+        self._position = position
 
     @property
     def image(self) -> Image.Image:
         return self._image
 
+    @image.setter
+    def image(self, image: Image.Image) -> None:
+        self._image = image
+
     def _shadow_pos(self):
         """Returns position of the shadow"""
         if self.text.has_shadow:
-            left = self.position[0] + self.text.shadow_offset[0]
-            top = self.position[1] + self.text.shadow_offset[1]
+            left = self.position[0] + self.text.shadow_offset()[0]
+            top = self.position[1] + self.text.shadow_offset()[1]
             return left, top
 
     def _get_layer(self) -> Image.Image:
@@ -131,8 +145,8 @@ class FontedTextPrinter:
         layer = self._get_layer()
         draw = ImageDraw.Draw(layer)
         draw.multiline_text(
-            pos=position,
-            text=self.text.text,
+            position,
+            self.text.text,
             font=self.text.font,
             fill=color,
             spacing=self.text.spacing,
@@ -141,12 +155,18 @@ class FontedTextPrinter:
         )
         return layer
 
-    def print(self) -> Image.Image:
-        """Prints text to image"""
+    def print(self, commit=True) -> Image.Image:
+        """Returns image with text on it
+        if commit == True, you will get initial image woth text on it
+        else, you will get image with text on tansparent background
+        """
         image = self._to_image(self.position, self.text.color)
-        image = Image.alpha_composite(self.image, image)
+
         if self.text.has_shadow:
-            shadow = self._to_image(self._shadow_pos, self.text.shadow_color)
+            shadow = self._to_image(self._shadow_pos(), self.text.shadow_color())
             shadow = shadow.filter(ImageFilter.BLUR)
             image = Image.alpha_composite(image, shadow)
+
+        if commit:
+            image = Image.alpha_composite(self.image, image)
         return image
