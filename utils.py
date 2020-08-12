@@ -34,7 +34,7 @@ class MyAuthorText(FontedText):
 
 
 class MyInstaImgCreator:
-    """class that generates photos via printer"""
+    """helper class that generates photos via `FontedTextPrinter`"""
 
     def __init__(
         self, text: str = "", quote: str = "", image: Image.Image = None
@@ -71,7 +71,7 @@ class MyInstaImgCreator:
     # this might belong to printer class
     def _centered_top(self, text: FontedText) -> int:
         """finds vertical coordinate, for text to be vertically centered inside the image"""
-        centered = (self.inner_height - text.height) / 2 + self.inner_top
+        centered = (self.inner_height - text.height) // 2 + self.inner_top
 
         return centered
 
