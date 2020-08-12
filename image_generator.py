@@ -1,6 +1,6 @@
 from csv import DictReader
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 
 class InstaImgCreator:
@@ -8,13 +8,18 @@ class InstaImgCreator:
         self,
         font_name: str,
         font_size: int,
+        signature_font_name: str,
+        signature_font_size: int,
         bg_path: str,
         text: str = "",
         signature: str = "",
     ) -> None:
         self.font = ImageFont.truetype(font_name, font_size)
+        self.signature_font = ImageFont.truetype(
+            signature_font_name, signature_font_size
+        )
 
-        self.bg = Image.open(bg_path)
+        self.bg = Image.open(bg_path).convert("RGBA")
 
         # self._inner_box_coords = (110, 130, 971, 1168)
         self.inner_left = 110
@@ -27,13 +32,16 @@ class InstaImgCreator:
         self.signature = signature
         self.text = text
 
+    def text_layer(self):
+        return Image.new("RGBA", self.bg.size, (255, 255, 255, 0))
+
     @property
     def text(self) -> str:
         return self._text
 
     @text.setter
     def text(self, text: str) -> None:
-        self._text = self.text_wrap(text)  # self.list_to_str(self.fit_text(text))
+        self._text = self.text_wrap(text)
 
     @property
     def signature(self) -> str:
@@ -73,37 +81,58 @@ class InstaImgCreator:
     def inner_centered_top(self) -> int:
         """finds vertical coordinate, for text to be vertically centered inside the image"""
         text_height = self.get_str_height(self.text)
-        centered = (self.inner_height - text_height) / 2
+        centered = (self.bg.size[1] - text_height) / 2
         return centered
 
-    def _imprint_text(self, text: str, pos: tuple):
+    def _imprint_text(self, text: str, pos: tuple, font: ImageFont):
         """Imprints text on image"""
-        draw = ImageDraw.Draw(self.bg)
+        layer = self.text_layer()
+        draw = ImageDraw.Draw(layer)
+        draw.multiline_text(
+            (pos[0] + 3, pos[1] + 3),
+            text,
+            font=font,
+            fill=(0, 0, 0, int(255 * 0.3)),
+            spacing=0,
+            stroke_width=1,
+            stroke_fill=(0, 0, 0, int(255 * 0.3)),
+        )
+        shadow = layer.filter(ImageFilter.BLUR)
+        self.bg = Image.alpha_composite(self.bg, shadow)
+        ###
+        layer = self.text_layer()
+        draw = ImageDraw.Draw(layer)
         draw.multiline_text(
             pos,
             text,
-            font=self.font,
-            fill="black",
+            font=font,
+            fill=(0, 0, 0, int(255 * 0.7)),
             spacing=0,
             stroke_width=1,
-            stroke_fill="black",
+            stroke_fill=(0, 0, 0, int(255 * 0.7)),
         )
+        ###
+
+        self.bg = Image.alpha_composite(self.bg, layer)
+
         return self
 
     def imprint_text(self):
         """imprints text in the middle of the inner box"""
-        return self._imprint_text(
-            text=self.text, pos=(self.inner_left, self.inner_centered_top()),
-        )
+        left = self.inner_left
+        top = self.inner_centered_top()
+        return self._imprint_text(text=self.text, pos=(left, top), font=self.font)
 
     def imprint_signature(self):
         """imprints signature in the right-bottom corner of the inner box"""
+        left = (
+            self.inner_right - self.signature_font.getsize_multiline(self.signature)[0]
+        )
+        top = (
+            self.inner_bottom - self.signature_font.getsize_multiline(self.signature)[1]
+        )
         return self._imprint_text(
-            text=self.signature,
-            pos=(
-                self.inner_right - self.get_str_width(self.signature),
-                self.inner_bottom - self.get_str_height(self.signature),
-            ),
+            text=self.signature, pos=(left, top), font=self.signature_font
         )
 
     def show(self, *args, **kwargs):
@@ -121,12 +150,23 @@ def read_from_csv():
 if __name__ == "__main__":
 
     FONT_NAME = "DancingScript-SemiBold.ttf"
+    SIGNATURE_FONT_NAME = "Brush Script.ttf"
     FONT_SIZE = 140
+    SIGNATURE_FONT_NAME
     GREEN_BG_PATH = "static/bg_green.jpeg"
+    SIGNATURE_FONT_SIZE = 86
 
-    iic = InstaImgCreator(FONT_NAME, FONT_SIZE, GREEN_BG_PATH)
+    import os
+
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    out = os.path.join(base_dir, 'out')
+
+    iic = InstaImgCreator(
+        FONT_NAME, FONT_SIZE, SIGNATURE_FONT_NAME, SIGNATURE_FONT_SIZE, GREEN_BG_PATH,
+    )
     for quote, author in read_from_csv():
         iic.text = quote
         iic.signature = author
-        iic.imprint_text().imprint_signature().show()
+        iic.imprint_text().imprint_signature().show()  # .bg.save("test.jpeg", "JPEG2000")
+
         break
