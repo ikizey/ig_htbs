@@ -1,6 +1,7 @@
 from csv import DictReader
 
 from PIL import Image
+from PIL import ImageDraw
 
 from utils import MyInstaImgCreator
 
@@ -26,6 +27,7 @@ if __name__ == "__main__":
     iic = MyInstaImgCreator()
 
     counter = 0
+    f_counter = 0
     for quote, author in read_from_csv():
         iic.quote = quote
         iic.author = author
@@ -36,8 +38,9 @@ if __name__ == "__main__":
         elif counter == 2:
             iic.image = blue_bg
         elif counter > 3:
-            counter = 0
+            counter = -1
 
-        iic.get_complete_image().show()
-
+        iic.get_complete_image().save(f"out/img{f_counter}.jpeg", "JPEG2000")
+        counter += 1
+        f_counter += 1
         break

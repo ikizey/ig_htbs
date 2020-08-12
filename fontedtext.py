@@ -69,11 +69,11 @@ class FontedText:
 
     def shadow_color(self) -> tuple:
         """Returns color of the shadow"""
-        return self._shadow[0][0]
+        return self._shadow[0]
 
     def shadow_offset(self) -> tuple:
         """Returns offset of the shadow"""
-        return self._shadow[0][1]
+        return self._shadow[1]
 
     @property
     def has_shadow(self):

@@ -9,7 +9,7 @@ class MyQuoteText(FontedText):
 
     def __init__(self, text: str) -> None:
         self.text = text
-        self.color = (0, 0, 0, int(255 * 0.86))  # black 86% opacity
+        self.color = (0, 0, 0, int(255 * 0.76))  # black 76% opacity
         self.font = ImageFont.truetype("DancingScript-SemiBold.ttf", 140)
         self.stroke_size = 1  # bold
         self.spacing = 0  # minium
@@ -17,7 +17,7 @@ class MyQuoteText(FontedText):
         # black opacity 30%;
         self.shadow = (0, 0, 0, int(255 * 0.3)), (-4, 4)
 
-        self.text_wrap(861)  # text should fit into this width
+        self.text_wrap(851)  # text should fit into this width
 
 
 class MyAuthorText(FontedText):
@@ -25,7 +25,7 @@ class MyAuthorText(FontedText):
 
     def __init__(self, text: str) -> None:
         self.text = text if text.startswith("-") else f"-{text}"  # prefix with -
-        self.color = (0, 0, 0, int(255 * 0.86))  # black 86% opacity
+        self.color = (0, 0, 0, int(255 * 0.76))  # black 76% opacity
         self.font = ImageFont.truetype("Brush Script.ttf", 86)
         self.stroke_size = 1  # bold
         self.spacing = 0  # minimum
@@ -45,10 +45,10 @@ class MyInstaImgCreator:
         self.printer = FontedTextPrinter()
 
         # inner box: only this part of image can be seen in preview
-        self.inner_left = 110
-        self.inner_right = 971
-        self.inner_top = 130
-        self.inner_bottom = 1168
+        self.inner_left = 115
+        self.inner_right = 966
+        self.inner_top = 134
+        self.inner_bottom = 1159
         self.inner_height = self.inner_bottom - self.inner_top
         self.inner_width = self.inner_right - self.inner_left
 
@@ -71,7 +71,8 @@ class MyInstaImgCreator:
     # this might belong to printer class
     def _centered_top(self, text: FontedText) -> int:
         """finds vertical coordinate, for text to be vertically centered inside the image"""
-        centered = (self.image.size[1] - text.height) / 2
+        centered = (self.inner_height - text.height) / 2 + self.inner_top
+
         return centered
 
     def _quote_pos(self) -> tuple:
