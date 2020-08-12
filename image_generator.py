@@ -1,6 +1,8 @@
 from csv import DictReader
 
-from instaimgcreator import InstaImgCreator
+from PIL import Image
+
+from instaimgcreator import MyInstaImgCreator
 
 
 def read_from_csv():
@@ -13,24 +15,29 @@ def read_from_csv():
 
 if __name__ == "__main__":
 
-    FONT_NAME = "DancingScript-SemiBold.ttf"
-    SIGNATURE_FONT_NAME = "Brush Script.ttf"
-    FONT_SIZE = 140
-    SIGNATURE_FONT_NAME
-    GREEN_BG_PATH = "static/bg_green.jpeg"
-    SIGNATURE_FONT_SIZE = 86
+    green_bg = Image.open("static/bg_green.jpeg").convert("RGBA")
+    blue_bg = Image.open("static/bg_blue.jpeg").convert("RGBA")
 
     import os
 
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     out = os.path.join(base_dir, 'out')
 
-    iic = InstaImgCreator(
-        FONT_NAME, FONT_SIZE, SIGNATURE_FONT_NAME, SIGNATURE_FONT_SIZE, GREEN_BG_PATH,
-    )
+    iic = MyInstaImgCreator()
+
+    counter = 0
     for quote, author in read_from_csv():
-        iic.text = quote
-        iic.signature = author
-        iic.imprint_text().imprint_signature().show()  # .bg.save("test.jpeg", "JPEG2000")
+        iic.quote = quote
+        iic.author = author
+
+        ## use different backgrounds: 2 green 2 blue
+        if counter == 0:
+            iic.image = green_bg
+        elif counter == 2:
+            iic.image = blue_bg
+        elif counter > 3:
+            counter = 0
+
+        iic.get_complete_image().show()
 
         break
