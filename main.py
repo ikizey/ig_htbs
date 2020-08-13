@@ -49,5 +49,9 @@ if __name__ == "__main__":
             iic.image = backgorunds[counter]
         counter = 0 if counter > 2 else counter + 1
 
-        out_file_path = str(out.joinpath(f"{date}.jpeg"))
-        iic.get_complete_image().save(out_file_path, "JPEG2000")
+        # out_file_path = str(out.joinpath(f"{date}.jpeg"))
+        # iic.get_complete_image().save(out_file_path, "JPEG2000")
+
+        # For some reason png preserves color while jpeg do not
+        out_file_path = str(out.joinpath(f"{date}.png"))
+        iic.get_complete_image().save(out_file_path, "PNG")
