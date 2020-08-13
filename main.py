@@ -4,7 +4,7 @@ from csv import DictReader
 from PIL import Image
 
 
-def read_from_csv(file_path):
+def read_from_csv(file_path: Path):
     with open(file_path, 'r') as quotes:
         lines = DictReader(quotes, delimiter='\t', quotechar='"')
         for line in lines:
@@ -47,9 +47,7 @@ if __name__ == "__main__":
         ## use different backgrounds: 2 green 2 blue repeat
         if counter == 0 or counter == 2:
             iic.image = backgorunds[counter]
-        counter = 0 if counter > 3 else counter + 1
+        counter = 0 if counter > 2 else counter + 1
 
         out_file_path = str(out.joinpath(f"{date}.jpeg"))
         iic.get_complete_image().save(out_file_path, "JPEG2000")
-
-        break
