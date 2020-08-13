@@ -10,9 +10,9 @@ class MyQuoteText(FontedText):
     def __init__(self, text: str) -> None:
         self.text = text
         self.color = (0, 0, 0, int(255 * 0.76))  # black 76% opacity
-        self.font = ImageFont.truetype("DancingScript-SemiBold.ttf", 140)
+        self.font = ImageFont.truetype("DancingScript-SemiBold.ttf", 130)  # !
         self.stroke_size = 1  # bold
-        self.spacing = 0  # minium
+        self.spacing = 0  # minimum
 
         # black opacity 30%;
         self.shadow = (0, 0, 0, int(255 * 0.3)), (-4, 4)

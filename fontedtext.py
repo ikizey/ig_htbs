@@ -158,7 +158,8 @@ class FontedTextPrinter:
         return Image.new("RGBA", self.image.size, (255, 255, 255, 0))
 
     def _to_image(self, position: tuple, color: tuple) -> Image.Image:
-        """Returns image of given size with text at given position with transparent backgorund"""
+        """Returns image of given size
+        with text at given position with transparent backgorund"""
         layer = self._get_layer()
         draw = ImageDraw.Draw(layer)
         draw.multiline_text(
@@ -175,8 +176,8 @@ class FontedTextPrinter:
     def print(self, commit=True) -> Image.Image:
         """Returns image with text on it.
 
-        If `commit == True`, you will get initial image woth text on it
-        else, you will get an image with text on tansparent background
+        If `commit == True`, get initial image with text on it
+        otherwise, get an image with text on tansparent background
         """
         image = self._to_image(self.position, self.text.color)
 
