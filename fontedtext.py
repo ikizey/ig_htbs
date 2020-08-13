@@ -87,12 +87,11 @@ class FontedText:
         left_cursor = 0
         prevous_cursor = 0
         for right_cursor in range(len(self.text)):
-            if self.text[right_cursor] == " ":
+            if self.text[right_cursor] == " " or right_cursor == len(self.text) - 1:
                 if not self._is_fit(self.text[left_cursor : right_cursor + 1], width):
                     chars[prevous_cursor] = "\n"
-                    left_cursor = right_cursor
+                    left_cursor = prevous_cursor + 1
                 prevous_cursor = right_cursor
-
         self.text = "".join(chars)
 
     def _is_fit(self, text: str, width: int) -> bool:
