@@ -17,7 +17,8 @@ def dict_of_images(path: Path) -> dict:
     # backgrouds = [Image.open(str(file)).convert("RGBA") for file in files]
     # # keys go like this : 0, 2, 4, 6 ...
     # backgrouds = {
-    #     k: v for k, v in zip((z * 2 for z in range(len(backgrouds))), backgrouds)
+    #     k: v
+    #     for k, v in zip((z * 2 for z in range(len(backgrouds))), backgrouds)
     # }
 
     bgs_paths = (path.joinpath("bg_green.jpeg"), path.joinpath("bg_blue.jpeg"))
@@ -30,10 +31,11 @@ if __name__ == "__main__":
 
     from utils import MyInstaImgCreator
 
-    BASE_DIR = Path(__file__).resolve().parent  # Django? :)
+    BASE_DIR = Path(__file__).resolve().parent
 
     static = BASE_DIR.joinpath("static")  # backgorunds and csv with data
     out = BASE_DIR.joinpath("out")
+    out_format = "PNG"
 
     backgorunds = dict_of_images(static)
 
@@ -44,14 +46,10 @@ if __name__ == "__main__":
         iic.quote = quote
         iic.author = author
 
-        ## use different backgrounds: 2 green 2 blue repeat
+        # use different backgrounds: 2 green 2 blue repeat
         if counter == 0 or counter == 2:
             iic.image = backgorunds[counter]
         counter = 0 if counter > 2 else counter + 1
 
-        # out_file_path = str(out.joinpath(f"{date}.jpeg"))
-        # iic.get_complete_image().save(out_file_path, "JPEG2000")
-
-        # For some reason png preserves color while jpeg do not
         out_file_path = str(out.joinpath(f"{date}.png"))
-        iic.get_complete_image().save(out_file_path, "PNG")
+        iic.get_complete_image().save(out_file_path, out_format)

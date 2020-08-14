@@ -1,11 +1,11 @@
-""" Helper classes with my settings"""
+"""Helper classes with my settings."""
 from PIL import Image, ImageFont
 
 from fontedtext import FontedText, FontedTextPrinter
 
 
 class MyQuoteText(FontedText):
-    """just to reduce constructor code later"""
+    """just to reduce constructor code later."""
 
     def __init__(self, text: str) -> None:
         self.text = text
@@ -21,10 +21,12 @@ class MyQuoteText(FontedText):
 
 
 class MyAuthorText(FontedText):
-    """just to reduce constructor code later"""
+    """just to reduce constructor code later."""
 
     def __init__(self, text: str) -> None:
-        self.text = text if text.startswith("-") else f"-{text}"  # prefix with -
+        self.text = (
+            text if text.startswith("-") else f"-{text}"
+        )  # prefix with -
         self.color = (0, 0, 0, int(255 * 0.76))  # black 76% opacity
         self.font = ImageFont.truetype("Brush Script.ttf", 86)
         self.stroke_size = 1  # bold
@@ -70,7 +72,8 @@ class MyInstaImgCreator:
 
     # this might belong to printer class
     def _centered_top(self, text: FontedText) -> int:
-        """finds vertical coordinate, for text to be vertically centered inside the image"""
+        """finds vertical coordinate, for text to be
+        vertically centered inside the image"""
         centered = (self.inner_height - text.height) // 2 + self.inner_top
 
         return centered
